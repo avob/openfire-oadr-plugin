@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+    <!-- Main plugin class -->
+    <class>com.avob.server.openfire.OpenfireOadrPlugin</class>
+
+    <!-- Plugin meta-data -->
+    <name>OpenfireOadrPlugin</name>
+    <description>Openfire Openadr security plugin</description>
+    <author>Bertrand Zanni</author>
+
+    <version>1.0</version>
+    <date>12/06/2019</date>
+    <url>http://github.com/shrhdk/openfire-plugin-example</url>
+    <minServerVersion>4.3.2</minServerVersion>
+    <minJavaVersion>1.8</minJavaVersion>    
+    <licenseType>MIT</licenseType>
+
+    <!-- Admin console entries -->
+    <adminconsole>
+        <!-- More on this below -->
+    </adminconsole>
+</plugin>
