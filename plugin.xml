@@ -17,6 +17,26 @@
 
     <!-- Admin console entries -->
     <adminconsole>
-        <!-- More on this below -->
+         <!--  <tab id="mytab" name="Example" url="my-plugin-admin.jsp" description="Click to manage...">
+            <sidebar id="mysidebar" name="My Plugin">
+               <item id="my-plugin" name="My Plugin Admin"
+                   url="my-plugin-admin.jsp"
+                   description="Click to administer settings for my plugin" />
+            </sidebar>
+        </tab>
+ -->
+        <tab id="tab-server"  >
+
+               <sidebar id="sidebar-server-manager" >
+                  
+                   <item id="oadr-info" name="Oadr Information"
+
+                       url="oadr-info.jsp"
+
+                       description="Click to administer oadr plugin" />
+
+               </sidebar>
+
+           </tab>
     </adminconsole>
 </plugin>

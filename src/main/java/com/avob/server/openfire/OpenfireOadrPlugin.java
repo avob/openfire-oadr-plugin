@@ -1,91 +1,120 @@
 package com.avob.server.openfire;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.X509Certificate;
 
-import org.jivesoftware.openfire.IQRouter;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+
 import org.jivesoftware.openfire.XMPPServer;
 import org.jivesoftware.openfire.container.Plugin;
 import org.jivesoftware.openfire.container.PluginManager;
 import org.jivesoftware.openfire.event.SessionEventDispatcher;
+import org.jivesoftware.openfire.keystore.IdentityStore;
+import org.jivesoftware.openfire.keystore.TrustStore;
+import org.jivesoftware.openfire.net.SASLAuthentication;
+import org.jivesoftware.openfire.spi.ConnectionType;
+import org.jivesoftware.util.JiveGlobals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xmpp.component.ComponentException;
+import org.xmpp.component.ComponentManager;
+import org.xmpp.component.ComponentManagerFactory;
 
 public class OpenfireOadrPlugin implements Plugin {
-	private static final Logger Log = LoggerFactory.getLogger(OpenfireOadrIQHandler.class);
 
-	private OpenfireOadrIQHandler oadrIQHandler;
+	public static final String OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY = "xmpp.oadr.vtnId";
+	public static final String OPENFIRE_OADR_VTN_AUTH_ENDPOINT_SYSTEM_PROPERTY = "xmpp.oadr.vtnAuthEndpoint";
+
+	private static final String XMPP_SUBDOMAIN = "xmpp";
+
+	private static final Logger Log = LoggerFactory.getLogger(OpenfireOadrPlugin.class);
+
 	private OpenfireOadrSessionListener openfireOadrSessionListener;
-
-	private List<String> getToBeRemovedFeature() throws IOException, URISyntaxException {
-		File file = new File(getClass().getClassLoader().getResource("to_be_removed_feature.txt").getFile());
-		List<String> features = new ArrayList<>();
-		BufferedReader reader;
-		try {
-			reader = new BufferedReader(new FileReader(file));
-			String line = reader.readLine();
-			while (line != null) {
-				System.out.println(line);
-				// read next line
-				line = reader.readLine();
-				features.add(line.trim());
-			}
-			reader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return features;
-	}
+	private OpenfireOadrComponent component;
 
 	@Override
 	public void initializePlugin(PluginManager manager, File pluginDirectory) {
 		XMPPServer server = XMPPServer.getInstance();
 
-		// init session listener
-		openfireOadrSessionListener = new OpenfireOadrSessionListener();
-		SessionEventDispatcher.addListener(openfireOadrSessionListener);
+		String xmppDomain = server.getServerInfo().getXMPPDomain();
+		IdentityStore identityStore = server.getCertificateStoreManager().getIdentityStore(ConnectionType.SOCKET_C2S);
+		TrustStore trustStore = server.getCertificateStoreManager().getTrustStore(ConnectionType.SOCKET_C2S);
 
-		// init iq handler
-		oadrIQHandler = new OpenfireOadrIQHandler();
-		IQRouter iqRouter = server.getIQRouter();
-		iqRouter.addHandler(oadrIQHandler);
-		Log.debug("http://jabber.org/protocol/rsm");
-		server.getIQDiscoInfoHandler().removeServerFeature("http://jabber.org/protocol/rsm");
-		server.getIQPEPHandler().stop();
-		server.getIQRegisterHandler().stop();
-		server.getPubSubModule().stop();
 		try {
-			for (String feature : getToBeRemovedFeature()) {
-				Log.debug(feature.trim());
-				server.getIQDiscoInfoHandler().removeServerFeature(feature.trim());
+			for (X509Certificate x509Certificate : identityStore.getAllCertificates().values()) {
+				String oadr20bFingerprint = OadrFingerprint.getOadr20bFingerprint(x509Certificate);
+				Log.info("vtn_username: " + oadr20bFingerprint);
+
 			}
-		} catch (IOException e) {
+		} catch (KeyStoreException e) {
 			Log.error(e.getMessage());
-		} catch (URISyntaxException e) {
+		} catch (OadrFingerprintException e) {
 			Log.error(e.getMessage());
 		}
 
-		for (final Iterator<String> it = oadrIQHandler.getFeatures(); it.hasNext();) {
-			XMPPServer.getInstance().getIQDiscoInfoHandler().addServerFeature(it.next());
+		// init session listener
+
+		KeyStore ks = identityStore.getStore();
+		KeyStore ts = trustStore.getStore();
+		try {
+			SSLContext ctx = SSLContext.getInstance("TLSv1.2");
+			KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			kmf.init(ks, identityStore.getConfiguration().getPassword());
+			tmf.init(ts);
+			ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+			openfireOadrSessionListener = new OpenfireOadrSessionListener(ctx.getSocketFactory());
+		} catch (NoSuchAlgorithmException e) {
+			Log.error(e.getMessage());
+		} catch (UnrecoverableKeyException e) {
+			Log.error(e.getMessage());
+		} catch (KeyStoreException e) {
+			Log.error(e.getMessage());
+		} catch (KeyManagementException e) {
+			Log.error(e.getMessage());
 		}
+
+		if (openfireOadrSessionListener != null) {
+			Log.info("SessionListener loaded");
+			SessionEventDispatcher.addListener(openfireOadrSessionListener);
+		} else {
+			Log.error("SessionListener can't be loaded");
+		}
+
+		ComponentManager componentManager = ComponentManagerFactory.getComponentManager();
+		try {
+			component = new OpenfireOadrComponent(xmppDomain);
+			componentManager.addComponent(XMPP_SUBDOMAIN, component);
+		} catch (ComponentException e) {
+			Log.error(e.getMessage());
+		}
+
+		OpenfireOadrAuthProvider oadrAuthProvider = new OpenfireOadrAuthProvider();
+		JiveGlobals.setProperty("provider.auth.className", oadrAuthProvider.getClass().getName());
+
+		SASLAuthentication.addSupportedMechanism("EXTERNAL");
 
 	}
 
 	@Override
 	public void destroyPlugin() {
 		SessionEventDispatcher.removeListener(openfireOadrSessionListener);
-		for (final Iterator<String> it = oadrIQHandler.getFeatures(); it.hasNext();) {
-			XMPPServer.getInstance().getIQDiscoInfoHandler().removeServerFeature(it.next());
+		ComponentManager componentManager = ComponentManagerFactory.getComponentManager();
+		try {
+			componentManager.removeComponent(XMPP_SUBDOMAIN);
+		} catch (ComponentException e) {
+			Log.error(e.getMessage());
 		}
-
-		oadrIQHandler = null;
 		openfireOadrSessionListener = null;
+		component = null;
 	}
 
 }
