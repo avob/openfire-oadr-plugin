@@ -2,7 +2,6 @@ package com.avob.server.openfire;
 
 import org.jivesoftware.openfire.auth.AuthProvider;
 import org.jivesoftware.openfire.auth.ConnectionException;
-import org.jivesoftware.openfire.auth.DefaultAuthProvider;
 import org.jivesoftware.openfire.auth.InternalUnauthenticatedException;
 import org.jivesoftware.openfire.auth.UnauthorizedException;
 import org.jivesoftware.openfire.user.UserNotFoundException;
@@ -13,20 +12,27 @@ public class OpenfireOadrAuthProvider implements AuthProvider {
 
 	private static final Logger Log = LoggerFactory.getLogger(OpenfireOadrAuthProvider.class);
 
-	private DefaultAuthProvider auth = new DefaultAuthProvider();
+	private static final String EVENT_SERVICE = "EiEvent";
+
+	private static final String REPORT_SERVICE = "EiReport";
+
+	private static final String REGISTERPARTY_SERVICE = "EiRegisterParty";
+
+	private static final String UPLINK_SERVICE = "uplink";
 
 	@Override
 	public void authenticate(String username, String password)
 			throws UnauthorizedException, ConnectionException, InternalUnauthenticatedException {
-		try {
-			boolean checkPassword = auth.checkPassword(username, password);
-			if (checkPassword) {
-				Log.info("Native openfire user: {}", username);
-//				return;
-			}
 
-		} catch (UserNotFoundException e) {
+		if (!EVENT_SERVICE.equals(username) && !REPORT_SERVICE.equals(username)
+				&& !REGISTERPARTY_SERVICE.equals(username) && !UPLINK_SERVICE.equals(username)) {
+			Log.info("Unauthorized user: " + username);
+			throw new UnauthorizedException();
 		}
+
+		Log.info("Authorized user: " + username);
+		return;
+
 	}
 
 	@Override

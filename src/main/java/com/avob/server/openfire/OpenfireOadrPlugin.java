@@ -6,19 +6,20 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
-import java.security.cert.X509Certificate;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.jivesoftware.openfire.XMPPServer;
+import org.jivesoftware.openfire.auth.DefaultAuthProvider;
+import org.jivesoftware.openfire.auth.HybridAuthProvider;
 import org.jivesoftware.openfire.container.Plugin;
 import org.jivesoftware.openfire.container.PluginManager;
 import org.jivesoftware.openfire.event.SessionEventDispatcher;
+import org.jivesoftware.openfire.interceptor.InterceptorManager;
 import org.jivesoftware.openfire.keystore.IdentityStore;
 import org.jivesoftware.openfire.keystore.TrustStore;
-import org.jivesoftware.openfire.net.SASLAuthentication;
 import org.jivesoftware.openfire.spi.ConnectionType;
 import org.jivesoftware.util.JiveGlobals;
 import org.slf4j.Logger;
@@ -38,6 +39,9 @@ public class OpenfireOadrPlugin implements Plugin {
 
 	private OpenfireOadrSessionListener openfireOadrSessionListener;
 	private OpenfireOadrComponent component;
+	private InterceptorManager interceptorManager;
+	private OpenfireOadrPacketInterceptor packetInterceptor;
+	private OadrManager oadrManager = new OadrManager();
 
 	@Override
 	public void initializePlugin(PluginManager manager, File pluginDirectory) {
@@ -47,17 +51,17 @@ public class OpenfireOadrPlugin implements Plugin {
 		IdentityStore identityStore = server.getCertificateStoreManager().getIdentityStore(ConnectionType.SOCKET_C2S);
 		TrustStore trustStore = server.getCertificateStoreManager().getTrustStore(ConnectionType.SOCKET_C2S);
 
-		try {
-			for (X509Certificate x509Certificate : identityStore.getAllCertificates().values()) {
-				String oadr20bFingerprint = OadrFingerprint.getOadr20bFingerprint(x509Certificate);
-				Log.info("vtn_username: " + oadr20bFingerprint);
-
-			}
-		} catch (KeyStoreException e) {
-			Log.error(e.getMessage());
-		} catch (OadrFingerprintException e) {
-			Log.error(e.getMessage());
-		}
+//		try {
+//			for (X509Certificate x509Certificate : identityStore.getAllCertificates().values()) {
+//				String oadr20bFingerprint = OadrFingerprint.getOadr20bFingerprint(x509Certificate);
+//				Log.info("vtn_username: " + oadr20bFingerprint);
+//
+//			}
+//		} catch (KeyStoreException e) {
+//			Log.error(e.getMessage());
+//		} catch (OadrFingerprintException e) {
+//			Log.error(e.getMessage());
+//		}
 
 		// init session listener
 
@@ -71,7 +75,7 @@ public class OpenfireOadrPlugin implements Plugin {
 			tmf.init(ts);
 			ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
-			openfireOadrSessionListener = new OpenfireOadrSessionListener(ctx.getSocketFactory());
+			openfireOadrSessionListener = new OpenfireOadrSessionListener(ctx.getSocketFactory(), oadrManager);
 		} catch (NoSuchAlgorithmException e) {
 			Log.error(e.getMessage());
 		} catch (UnrecoverableKeyException e) {
@@ -91,16 +95,22 @@ public class OpenfireOadrPlugin implements Plugin {
 
 		ComponentManager componentManager = ComponentManagerFactory.getComponentManager();
 		try {
-			component = new OpenfireOadrComponent(xmppDomain);
+			component = new OpenfireOadrComponent(oadrManager, XMPP_SUBDOMAIN + "." + xmppDomain);
 			componentManager.addComponent(XMPP_SUBDOMAIN, component);
 		} catch (ComponentException e) {
 			Log.error(e.getMessage());
 		}
 
 		OpenfireOadrAuthProvider oadrAuthProvider = new OpenfireOadrAuthProvider();
-		JiveGlobals.setProperty("provider.auth.className", oadrAuthProvider.getClass().getName());
+		JiveGlobals.setProperty("provider.auth.className", HybridAuthProvider.class.getName());
+		JiveGlobals.setProperty("hybridAuthProvider.primaryProvider.className", DefaultAuthProvider.class.getName());
+		JiveGlobals.setProperty("hybridAuthProvider.secondaryProvider.className",
+				oadrAuthProvider.getClass().getName());
 
-		SASLAuthentication.addSupportedMechanism("EXTERNAL");
+		String fullXmppDomain = XMPP_SUBDOMAIN + "." + xmppDomain;
+		interceptorManager = InterceptorManager.getInstance();
+		packetInterceptor = new OpenfireOadrPacketInterceptor(oadrManager, fullXmppDomain);
+		interceptorManager.addInterceptor(packetInterceptor);
 
 	}
 
@@ -113,6 +123,9 @@ public class OpenfireOadrPlugin implements Plugin {
 		} catch (ComponentException e) {
 			Log.error(e.getMessage());
 		}
+		interceptorManager.removeInterceptor(packetInterceptor);
+
+		packetInterceptor = null;
 		openfireOadrSessionListener = null;
 		component = null;
 	}

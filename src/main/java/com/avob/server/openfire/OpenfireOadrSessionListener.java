@@ -23,9 +23,11 @@ public class OpenfireOadrSessionListener implements SessionEventListener {
 	private static final Logger Log = LoggerFactory.getLogger(OpenfireOadrSessionListener.class);
 
 	private SSLSocketFactory socketFactory;
+	private OadrManager oadrManager;
 
-	public OpenfireOadrSessionListener(SSLSocketFactory socketFactory) {
+	public OpenfireOadrSessionListener(SSLSocketFactory socketFactory, OadrManager oadrManager) {
 		this.socketFactory = socketFactory;
+		this.oadrManager = oadrManager;
 	}
 
 	public void sessionCreated(Session session) {
@@ -33,7 +35,7 @@ public class OpenfireOadrSessionListener implements SessionEventListener {
 	}
 
 	public void sessionDestroyed(Session session) {
-		// TODO Auto-generated method stub
+		handleSessionDestroyed(session);
 
 	}
 
@@ -42,13 +44,35 @@ public class OpenfireOadrSessionListener implements SessionEventListener {
 	}
 
 	public void anonymousSessionDestroyed(Session session) {
-		// TODO Auto-generated method stub
+		handleSessionDestroyed(session);
 
 	}
 
 	public void resourceBound(Session session) {
-		// TODO Auto-generated method stub
-//		AuthPro
+	}
+
+	private void handleSessionDestroyed(Session session) {
+		if (oadrManager.getEventJid() != null && oadrManager.getEventJid().equals(session.getAddress())) {
+			oadrManager.setEventJid(null);
+			String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
+			Log.info("vtn: " + vtnId + " event client disconnected");
+		} else if (oadrManager.getRegisterPartyJid() != null
+				&& oadrManager.getRegisterPartyJid().equals(session.getAddress())) {
+			oadrManager.setRegisterPartyJid(null);
+			String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
+			Log.info("vtn: " + vtnId + " registerParty client disconnected");
+		} else if (oadrManager.getReportJid() != null && oadrManager.getReportJid().equals(session.getAddress())) {
+			oadrManager.setReportJid(null);
+			String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
+			Log.info("vtn: " + vtnId + " report client disconnected");
+		} else if (oadrManager.getUplinkJid() != null && oadrManager.getUplinkJid().equals(session.getAddress())) {
+			oadrManager.setUplinkJid(null);
+			String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
+			Log.info("vtn: " + vtnId + " uplink client disconnected");
+		} else {
+			oadrManager.removeVen(session.getAddress().toFullJID());
+		}
+
 	}
 
 	private void handleSessionCreated(Session session) {
@@ -56,6 +80,7 @@ public class OpenfireOadrSessionListener implements SessionEventListener {
 //		if (session.getStatus() == Session.STATUS_AUTHENTICATED) {
 //			return;
 //		}
+
 		String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
 		if (vtnId != null) {
 			for (Certificate cert : certs) {
@@ -64,14 +89,18 @@ public class OpenfireOadrSessionListener implements SessionEventListener {
 					try {
 						String oadr20bFingerprint = OadrFingerprint.getOadr20bFingerprint(x509);
 						if (vtnId.equals(oadr20bFingerprint)) {
-							Log.info("vtn: " + oadr20bFingerprint + " connected with jid: "
+							Log.info("vtn: " + oadr20bFingerprint + " client connected with jid: "
 									+ session.getAddress().toFullJID());
+
 							return;
 						} else {
-							Log.info("potential ven: " + oadr20bFingerprint);
 
 							boolean validateUserRole = validateUserRole(oadr20bFingerprint);
 							if (validateUserRole) {
+								Log.info("ven: " + oadr20bFingerprint + " client connected with jid: "
+										+ session.getAddress().toFullJID());
+								oadrManager.addVen(session.getAddress().toFullJID(), oadr20bFingerprint);
+
 								return;
 							}
 						}
