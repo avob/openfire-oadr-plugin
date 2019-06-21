@@ -12,20 +12,15 @@ public class OpenfireOadrAuthProvider implements AuthProvider {
 
 	private static final Logger Log = LoggerFactory.getLogger(OpenfireOadrAuthProvider.class);
 
-	private static final String EVENT_SERVICE = "EiEvent";
-
-	private static final String REPORT_SERVICE = "EiReport";
-
-	private static final String REGISTERPARTY_SERVICE = "EiRegisterParty";
-
-	private static final String UPLINK_SERVICE = "uplink";
-
 	@Override
 	public void authenticate(String username, String password)
 			throws UnauthorizedException, ConnectionException, InternalUnauthenticatedException {
 
-		if (!EVENT_SERVICE.equals(username) && !REPORT_SERVICE.equals(username)
-				&& !REGISTERPARTY_SERVICE.equals(username) && !UPLINK_SERVICE.equals(username)) {
+		if (!OpenfireOadrComponent.EVENT_SERVICE.equals(username)
+				&& !OpenfireOadrComponent.REPORT_SERVICE.equals(username)
+				&& !OpenfireOadrComponent.REGISTERPARTY_SERVICE.equals(username)
+				&& !OpenfireOadrComponent.UPLINK_SERVICE.equals(username)
+				&& !OpenfireOadrComponent.OPT_SERVICE.equals(username)) {
 			Log.info("Unauthorized user: " + username);
 			throw new UnauthorizedException();
 		}

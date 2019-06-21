@@ -1,8 +1,6 @@
 package com.avob.server.openfire;
 
 import org.dom4j.Element;
-import org.jivesoftware.openfire.PacketRouter;
-import org.jivesoftware.openfire.XMPPServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.component.AbstractComponent;
@@ -12,26 +10,36 @@ import org.xmpp.packet.Presence;
 
 public class OpenfireOadrComponent extends AbstractComponent {
 	private static final Logger Log = LoggerFactory.getLogger(OpenfireOadrComponent.class);
+
+	public static final String EVENT_SERVICE = "EiEvent";
+
+	public static final String REPORT_SERVICE = "EiReport";
+
+	public static final String REGISTERPARTY_SERVICE = "EiRegisterParty";
+
+	public static final String OPT_SERVICE = "EiOpt";
+
+	public static final String UPLINK_SERVICE = "uplink";
+
 	private static final String NAMESPACE_OADR = "http://openadr.org/openadr2";
 
-	private static final String NODE_EVENT = "http://openadr.org/OpenADR2/EiEvent";
+	private static final String NODE_EVENT = "http://openadr.org/OpenADR2/" + EVENT_SERVICE;
 	public static final String LOCALPART_EVENT = "event";
 
-	private static final String NODE_REPORT = "http://openadr.org/OpenADR2/EiReport";
+	private static final String NODE_REPORT = "http://openadr.org/OpenADR2/" + REPORT_SERVICE;
 	public static final String LOCALPART_REPORT = "report";
 
-	private static final String NODE_REGISTERPARTY = "http://openadr.org/OpenADR2/EiRegisterParty";
+	private static final String NODE_REGISTERPARTY = "http://openadr.org/OpenADR2/" + REGISTERPARTY_SERVICE;
 	public static final String LOCALPART_REGISTERPARTY = "registerparty";
 
-	private static final String PING_NAMESPACE = "urn:ietf:params:xml:ns:xmpp-bind";
+	private static final String NODE_OPT = "http://openadr.org/OpenADR2/" + OPT_SERVICE;
+	public static final String LOCALPART_OPT = "opt";
 
 	private String domain;
-	private PacketRouter packetRouter;
 	private OadrManager oadrManager;
 
 	public OpenfireOadrComponent(OadrManager oadrManager, String domain) {
 		this.domain = domain;
-		packetRouter = XMPPServer.getInstance().getPacketRouter();
 		this.oadrManager = oadrManager;
 
 	}
@@ -67,6 +75,9 @@ public class OpenfireOadrComponent extends AbstractComponent {
 
 			responseElement.addElement("item").addAttribute("jid", LOCALPART_REGISTERPARTY + "@" + domain)
 					.addAttribute("node", NODE_REGISTERPARTY);
+
+			responseElement.addElement("item").addAttribute("jid", LOCALPART_OPT + "@" + domain).addAttribute("node",
+					NODE_OPT);
 		}
 		replyPacket.setChildElement(responseElement);
 		return replyPacket;
@@ -88,26 +99,23 @@ public class OpenfireOadrComponent extends AbstractComponent {
 
 			} else if (to.equals(OpenfireOadrComponent.LOCALPART_REGISTERPARTY + "@" + domain)) {
 
-				Log.info("Route to registerPartyService: " + oadrManager.getRegisterPartyJid().toString());
 				vtnId = oadrManager.getRegisterPartyJid();
 
 			} else if (to.equals(OpenfireOadrComponent.LOCALPART_REPORT + "@" + domain)) {
 
 				vtnId = oadrManager.getReportJid();
 
+			} else if (to.equals(OpenfireOadrComponent.LOCALPART_OPT + "@" + domain)) {
+
+				vtnId = oadrManager.getOptJid();
+
 			}
 
 			if (vtnId != null) {
 				Message createCopy = message.createCopy();
 				createCopy.setTo(vtnId);
-				String venFingerprint = oadrManager.getVenFingerprint(message.getFrom().getResource() + "@"
-						+ message.getFrom().getDomain() + "/" + message.getFrom().getResource());
-				if (venFingerprint != null) {
-					createCopy.setFrom(venFingerprint + "@" + domain);
-				}
 
 				this.send(createCopy);
-//				packetRouter.route(message);
 
 			}
 

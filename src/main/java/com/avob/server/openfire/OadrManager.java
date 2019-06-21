@@ -1,8 +1,5 @@
 package com.avob.server.openfire;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class OadrManager {
 
 	private String reportJid;
@@ -10,10 +7,10 @@ public class OadrManager {
 	private String eventJid;
 
 	private String registerPartyJid;
+	
+	private String optJid;
 
 	private String uplinkJid;
-
-	private Map<String, String> venJidToFingerprint = new HashMap<>();
 
 	public String getReportJid() {
 		return reportJid;
@@ -47,16 +44,12 @@ public class OadrManager {
 		this.uplinkJid = uplinkJid;
 	}
 
-	public void addVen(String jid, String fingerprint) {
-		venJidToFingerprint.put(jid, fingerprint);
+	public String getOptJid() {
+		return optJid;
 	}
 
-	public void removeVen(String jid) {
-		venJidToFingerprint.remove(jid);
-	}
-
-	public String getVenFingerprint(String jid) {
-		return venJidToFingerprint.get(jid);
+	public void setOptJid(String optJid) {
+		this.optJid = optJid;
 	}
 
 }
