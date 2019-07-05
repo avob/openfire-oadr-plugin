@@ -20,6 +20,12 @@ import org.slf4j.LoggerFactory;
 
 public class OpenfireOadrSessionListener implements SessionEventListener {
 
+	public static final String ROLE_VEN = "ROLE_VEN";
+
+	public static final String ROLE_VTN = "ROLE_VTN";
+
+	public static final String ROLE_SESSION_DATA_KEY = "ROLE";
+
 	public static final String FINGERPRINT_SESSION_DATA_KEY = "fingerprint";
 
 	private static final Logger Log = LoggerFactory.getLogger(OpenfireOadrSessionListener.class);
@@ -51,6 +57,7 @@ public class OpenfireOadrSessionListener implements SessionEventListener {
 	}
 
 	public void resourceBound(Session session) {
+		handleSessionCreated(session);
 	}
 
 	private void handleSessionDestroyed(Session session) {
@@ -99,6 +106,8 @@ public class OpenfireOadrSessionListener implements SessionEventListener {
 							Log.info("vtn: " + oadr20bFingerprint + " client connected with jid: "
 									+ session.getAddress().toFullJID());
 
+							localSession.setSessionData(ROLE_SESSION_DATA_KEY, ROLE_VTN);
+
 							return;
 						} else {
 
@@ -108,6 +117,7 @@ public class OpenfireOadrSessionListener implements SessionEventListener {
 										+ session.getAddress().toFullJID());
 
 								localSession.setSessionData(FINGERPRINT_SESSION_DATA_KEY, oadr20bFingerprint);
+								localSession.setSessionData(ROLE_SESSION_DATA_KEY, ROLE_VEN);
 
 								return;
 							}
@@ -163,7 +173,7 @@ public class OpenfireOadrSessionListener implements SessionEventListener {
 				// print result
 				String roles = response.toString();
 				Log.info("username: " + username + " has role: " + roles);
-				if (roles.indexOf("ROLE_VEN") > -1) {
+				if (roles.indexOf(ROLE_VEN) > -1) {
 					return true;
 				}
 			}

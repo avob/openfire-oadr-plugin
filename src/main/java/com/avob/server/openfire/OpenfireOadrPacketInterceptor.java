@@ -4,9 +4,11 @@ import org.jivesoftware.openfire.interceptor.PacketInterceptor;
 import org.jivesoftware.openfire.interceptor.PacketRejectedException;
 import org.jivesoftware.openfire.session.LocalSession;
 import org.jivesoftware.openfire.session.Session;
+import org.jivesoftware.util.JiveGlobals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.packet.IQ;
+import org.xmpp.packet.JID;
 import org.xmpp.packet.Message;
 import org.xmpp.packet.Packet;
 
@@ -47,7 +49,12 @@ public class OpenfireOadrPacketInterceptor implements PacketInterceptor {
 
 				IQ iq = (IQ) packet;
 
-				if (iq.getElement().element("bind") != null) {
+				if (
+//						isVtn(localSession) && 
+				iq.getElement().element("bind") != null) {
+					Log.info("Intercept VTN iq");
+//					Log.info(iq.toString());
+
 					if (iq.getChildElement().element("resource") != null) {
 						// VTN can setup a connection per Oadr Service (+1 for uplinks) by providing
 						// resource in IQ bind payload
@@ -81,18 +88,19 @@ public class OpenfireOadrPacketInterceptor implements PacketInterceptor {
 						case OpenfireOadrComponent.UPLINK_SERVICE:
 							Log.info("Set uplink Jid: " + jid);
 							oadrManager.setUplinkJid(jid);
+
 							break;
 						}
 					} else {
 						// VTN can setup an unique connection by omiting re
-						Log.info("vtn client connected with jid: " + iq.getFrom().toString());
-
-						String jid = iq.getFrom().toString();
-						oadrManager.setRegisterPartyJid(jid);
-						oadrManager.setEventJid(jid);
-						oadrManager.setReportJid(jid);
-						oadrManager.setOptJid(jid);
-						oadrManager.setUplinkJid(jid);
+//						Log.info("vtn client connected with jid: " + iq.getFrom().toString());
+//
+//						String jid = iq.getFrom().toString();
+//						oadrManager.setRegisterPartyJid(jid);
+//						oadrManager.setEventJid(jid);
+//						oadrManager.setReportJid(jid);
+//						oadrManager.setOptJid(jid);
+//						oadrManager.setUplinkJid(jid);
 
 					}
 
@@ -101,12 +109,40 @@ public class OpenfireOadrPacketInterceptor implements PacketInterceptor {
 
 				Message message = (Message) packet;
 
-				if (message.getFrom() != null && message.getFrom().equals(session.getAddress())) {
-					String resource = message.getFrom().getResource();
-					String fromJid = localSession
-							.getSessionData(OpenfireOadrSessionListener.FINGERPRINT_SESSION_DATA_KEY) + "@"
-							+ fullXmppDomain + "/" + resource;
-					message.setFrom(fromJid);
+				Log.info("Intercept ---------");
+				Log.info(message.toXML());
+
+				if (message.getFrom() != null && message.getTo() != null) {
+					if (message.getFrom().toString().equals(oadrManager.getUplinkJid())) {
+
+						Log.info("Intercept VTN msg from: " + message.getFrom().toString() + " to: "
+								+ message.getTo().toString());
+
+						String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
+
+						if (vtnId != null) {
+							String domain = message.getFrom().getDomain();
+							message.setFrom(vtnId + "@" + domain + "/uplink");
+						}
+
+					} else if (message.getTo().toString().contains(fullXmppDomain)) {
+						Log.info("Intercept VEN msg from: " + message.getFrom().toString() + " to: "
+								+ message.getTo().toString());
+
+						if (message.getFrom().equals(session.getAddress())) {
+
+							JID old = message.getFrom();
+							String resource = message.getFrom().getResource();
+							String fromJid = localSession
+									.getSessionData(OpenfireOadrSessionListener.FINGERPRINT_SESSION_DATA_KEY) + "@"
+									+ fullXmppDomain + "/" + resource;
+							message.setFrom(fromJid);
+
+							Log.info("Change msg 'from' from: " + old.toString() + "to: " + fromJid);
+
+						}
+					}
+
 				}
 
 			}

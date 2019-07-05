@@ -85,7 +85,7 @@ public class OpenfireOadrComponent extends AbstractComponent {
 
 	@Override
 	protected void handleMessage(final Message message) {
-		Log.info("Message");
+		Log.info("Component ---------");
 		Log.info(message.toXML());
 
 		if (message.getTo() != null && message.getFrom() != null) {
