@@ -18,6 +18,12 @@ import org.jivesoftware.util.JiveGlobals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 
+ * 
+ * @author bzanni
+ *
+ */
 public class OpenfireOadrSessionListener implements SessionEventListener {
 
 	public static final String ROLE_VEN = "ROLE_VEN";
@@ -39,25 +45,29 @@ public class OpenfireOadrSessionListener implements SessionEventListener {
 	}
 
 	public void sessionCreated(Session session) {
+		Log.info("sessionCreated");
 		handleSessionCreated(session);
 	}
 
 	public void sessionDestroyed(Session session) {
+		Log.info("sessionDestroyed");
 		handleSessionDestroyed(session);
 
 	}
 
 	public void anonymousSessionCreated(Session session) {
+		Log.info("anonymousSessionCreated");
 		handleSessionCreated(session);
 	}
 
 	public void anonymousSessionDestroyed(Session session) {
+		Log.info("anonymousSessionDestroyed");
 		handleSessionDestroyed(session);
 
 	}
 
 	public void resourceBound(Session session) {
-		handleSessionCreated(session);
+//		handleSessionCreated(session);
 	}
 
 	private void handleSessionDestroyed(Session session) {

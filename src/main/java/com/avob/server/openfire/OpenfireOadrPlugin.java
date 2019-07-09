@@ -51,18 +51,6 @@ public class OpenfireOadrPlugin implements Plugin {
 		IdentityStore identityStore = server.getCertificateStoreManager().getIdentityStore(ConnectionType.SOCKET_C2S);
 		TrustStore trustStore = server.getCertificateStoreManager().getTrustStore(ConnectionType.SOCKET_C2S);
 
-//		try {
-//			for (X509Certificate x509Certificate : identityStore.getAllCertificates().values()) {
-//				String oadr20bFingerprint = OadrFingerprint.getOadr20bFingerprint(x509Certificate);
-//				Log.info("vtn_username: " + oadr20bFingerprint);
-//
-//			}
-//		} catch (KeyStoreException e) {
-//			Log.error(e.getMessage());
-//		} catch (OadrFingerprintException e) {
-//			Log.error(e.getMessage());
-//		}
-
 		// init session listener
 
 		KeyStore ks = identityStore.getStore();

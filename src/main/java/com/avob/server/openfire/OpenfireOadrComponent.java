@@ -20,6 +20,8 @@ public class OpenfireOadrComponent extends AbstractComponent {
 	public static final String OPT_SERVICE = "EiOpt";
 
 	public static final String UPLINK_SERVICE = "uplink";
+	
+	public static final String VEN_CLIENT_RESOURCE = "client";
 
 	private static final String NAMESPACE_OADR = "http://openadr.org/openadr2";
 

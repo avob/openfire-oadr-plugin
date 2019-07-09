@@ -11,7 +11,7 @@ public class OadrFingerprint {
 	private static final String OADR20B_SHA_ALGORITHM = "SHA-256";
 
 	public static String getOadr20bFingerprint(X509Certificate cert) throws OadrFingerprintException {
-		return OadrFingerprint.truncate(getFingerprint(cert, OADR20B_SHA_ALGORITHM));
+		return OadrFingerprint.format(OadrFingerprint.truncate(getFingerprint(cert, OADR20B_SHA_ALGORITHM)));
 	}
 
 	private static String getFingerprint(X509Certificate cert, String shaVersion) throws OadrFingerprintException {
@@ -49,6 +49,10 @@ public class OadrFingerprint {
 		}
 
 		return buf.toString();
+	}
+
+	private static String format(String fingerprint) {
+		return fingerprint.replaceAll(":", "").toLowerCase();
 	}
 
 	private static String truncate(String fingerprint) throws OadrFingerprintException {

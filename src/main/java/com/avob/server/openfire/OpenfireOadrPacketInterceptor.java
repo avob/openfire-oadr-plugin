@@ -60,47 +60,54 @@ public class OpenfireOadrPacketInterceptor implements PacketInterceptor {
 						// resource in IQ bind payload
 						// resource MUST be either EiEvent, EiReport, EiRegisterParty, uplink
 						String resource = iq.getChildElement().element("resource").getText();
-						Log.info("vtn client: " + resource + " connected with jid: " + iq.getFrom().toString());
+
 						String jid = iq.getFrom().getResource() + "@" + iq.getFrom().getDomain() + "/"
 								+ iq.getFrom().getResource();
 						switch (resource) {
 						case OpenfireOadrComponent.REGISTERPARTY_SERVICE:
-
+							Log.info("vtn client: " + resource + " connected with jid: " + iq.getFrom().toString());
 							Log.info("Set registerParty Jid: " + jid);
 							oadrManager.setRegisterPartyJid(jid);
 							break;
 
 						case OpenfireOadrComponent.EVENT_SERVICE:
+							Log.info("vtn client: " + resource + " connected with jid: " + iq.getFrom().toString());
 							Log.info("Set event Jid: " + jid);
 							oadrManager.setEventJid(jid);
 							break;
 
 						case OpenfireOadrComponent.REPORT_SERVICE:
+							Log.info("vtn client: " + resource + " connected with jid: " + iq.getFrom().toString());
 							Log.info("Set report Jid: " + jid);
 							oadrManager.setReportJid(jid);
 							break;
 
 						case OpenfireOadrComponent.OPT_SERVICE:
+							Log.info("vtn client: " + resource + " connected with jid: " + iq.getFrom().toString());
 							Log.info("Set opt Jid: " + jid);
 							oadrManager.setOptJid(jid);
 							break;
 
 						case OpenfireOadrComponent.UPLINK_SERVICE:
+							Log.info("vtn client: " + resource + " connected with jid: " + iq.getFrom().toString());
 							Log.info("Set uplink Jid: " + jid);
 							oadrManager.setUplinkJid(jid);
 
 							break;
+
+						case OpenfireOadrComponent.VEN_CLIENT_RESOURCE:
+							Log.info("ven client: " + resource + " connected with jid: " + iq.getFrom().toString());
+							break;
 						}
 					} else {
 						// VTN can setup an unique connection by omiting re
-//						Log.info("vtn client connected with jid: " + iq.getFrom().toString());
-//
-//						String jid = iq.getFrom().toString();
-//						oadrManager.setRegisterPartyJid(jid);
-//						oadrManager.setEventJid(jid);
-//						oadrManager.setReportJid(jid);
-//						oadrManager.setOptJid(jid);
-//						oadrManager.setUplinkJid(jid);
+						Log.info("vtn client connected with jid: " + iq.getFrom().toString());
+						String jid = iq.getFrom().toString();
+						oadrManager.setRegisterPartyJid(jid);
+						oadrManager.setEventJid(jid);
+						oadrManager.setReportJid(jid);
+						oadrManager.setOptJid(jid);
+						oadrManager.setUplinkJid(jid);
 
 					}
 
