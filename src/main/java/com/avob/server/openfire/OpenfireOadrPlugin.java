@@ -46,7 +46,7 @@ public class OpenfireOadrPlugin implements Plugin {
 	@Override
 	public void initializePlugin(PluginManager manager, File pluginDirectory) {
 		XMPPServer server = XMPPServer.getInstance();
-
+		
 		String xmppDomain = server.getServerInfo().getXMPPDomain();
 		IdentityStore identityStore = server.getCertificateStoreManager().getIdentityStore(ConnectionType.SOCKET_C2S);
 		TrustStore trustStore = server.getCertificateStoreManager().getTrustStore(ConnectionType.SOCKET_C2S);
@@ -63,7 +63,7 @@ public class OpenfireOadrPlugin implements Plugin {
 			tmf.init(ts);
 			ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
-			openfireOadrSessionListener = new OpenfireOadrSessionListener(ctx.getSocketFactory(), oadrManager);
+			openfireOadrSessionListener = new OpenfireOadrSessionListener(ctx.getSocketFactory(), getOadrManager());
 		} catch (NoSuchAlgorithmException e) {
 			Log.error(e.getMessage());
 		} catch (UnrecoverableKeyException e) {
@@ -83,7 +83,7 @@ public class OpenfireOadrPlugin implements Plugin {
 
 		ComponentManager componentManager = ComponentManagerFactory.getComponentManager();
 		try {
-			component = new OpenfireOadrComponent(oadrManager, XMPP_SUBDOMAIN + "." + xmppDomain);
+			component = new OpenfireOadrComponent(getOadrManager(), XMPP_SUBDOMAIN + "." + xmppDomain);
 			componentManager.addComponent(XMPP_SUBDOMAIN, component);
 		} catch (ComponentException e) {
 			Log.error(e.getMessage());
@@ -97,7 +97,7 @@ public class OpenfireOadrPlugin implements Plugin {
 
 		String fullXmppDomain = XMPP_SUBDOMAIN + "." + xmppDomain;
 		interceptorManager = InterceptorManager.getInstance();
-		packetInterceptor = new OpenfireOadrPacketInterceptor(oadrManager, fullXmppDomain);
+		packetInterceptor = new OpenfireOadrPacketInterceptor(getOadrManager(), fullXmppDomain);
 		interceptorManager.addInterceptor(packetInterceptor);
 
 	}
@@ -116,6 +116,14 @@ public class OpenfireOadrPlugin implements Plugin {
 		packetInterceptor = null;
 		openfireOadrSessionListener = null;
 		component = null;
+	}
+
+	public OadrManager getOadrManager() {
+		return oadrManager;
+	}
+
+	private void setOadrManager(OadrManager oadrManager) {
+		this.oadrManager = oadrManager;
 	}
 
 }

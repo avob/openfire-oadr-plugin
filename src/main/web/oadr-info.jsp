@@ -81,6 +81,18 @@
 }
 </style>
 
+<%@ page import="org.jivesoftware.openfire.XMPPServer" %>
+<%@ page import="com.avob.server.openfire.OpenfireOadrPlugin" %>
+com.avob.server.openfire<% // Get parameters //
+
+    // Network interface (if any) is configured for all ports on the server
+    OpenfireOadrPlugin openfireOadrPlugin =
+            (OpenfireOadrPlugin) XMPPServer.getInstance().getPluginManager().getPlugin("OpenfireOadrPlugin");
+
+
+
+    boolean rssEnabled = JiveGlobals.getBooleanProperty("rss.enabled", true);
+%>
 	<p>
 		<fmt:message key="oadr.info.message" />
 	</p>
@@ -95,7 +107,6 @@
 								key="oadr.info.properties" /></th>
 					</tr>
 				</thead>
-
 				<tbody>
 					<tr>
 						<td class="c1"><fmt:message key="oadr.info.vtnId" /></td>
@@ -121,6 +132,13 @@
 							<%= vtnAuthEndpoint %>
 						<% } %>
 
+						</td>
+					</tr>
+					<tr>
+						<td class="c1"><fmt:message key="oadr.info.vtnClientState" /></td>
+						<td class="c2">
+						<% boolean vtnClientConnected = openfireOadrPlugin.getOadrManager().isVtnConnected(); %>
+						<%= vtnClientConnected %>
 						</td>
 					</tr>
 					<tr>

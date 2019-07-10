@@ -25,7 +25,7 @@ public class OpenfireOadrAuthProvider implements AuthProvider {
 			throw new UnauthorizedException();
 		}
 
-		Log.info("Authorized user: " + username);
+		Log.info("Authorized user: " + username + " - " + password);
 		return;
 
 	}

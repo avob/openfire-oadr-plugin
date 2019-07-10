@@ -7,7 +7,7 @@ public class OadrManager {
 	private String eventJid;
 
 	private String registerPartyJid;
-	
+
 	private String optJid;
 
 	private String uplinkJid;
@@ -52,4 +52,8 @@ public class OadrManager {
 		this.optJid = optJid;
 	}
 
+	public boolean isVtnConnected() {
+		return this.getEventJid() != null && this.getReportJid() != null && this.getRegisterPartyJid() != null
+				&& this.getUplinkJid() != null && this.getOptJid() != null;
+	}
 }

@@ -67,28 +67,33 @@ public class OpenfireOadrSessionListener implements SessionEventListener {
 	}
 
 	public void resourceBound(Session session) {
-//		handleSessionCreated(session);
 	}
 
 	private void handleSessionDestroyed(Session session) {
-		if (oadrManager.getEventJid() != null && oadrManager.getEventJid().equals(session.getAddress())) {
+
+		if (oadrManager.getEventJid() != null && oadrManager.getEventJid().equals(session.getAddress().toString())) {
 			oadrManager.setEventJid(null);
 			String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
 			Log.info("vtn: " + vtnId + " event client disconnected");
 		}
 		if (oadrManager.getRegisterPartyJid() != null
-				&& oadrManager.getRegisterPartyJid().equals(session.getAddress())) {
+				&& oadrManager.getRegisterPartyJid().equals(session.getAddress().toString())) {
 			oadrManager.setRegisterPartyJid(null);
 			String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
 			Log.info("vtn: " + vtnId + " registerParty client disconnected");
 		}
-		if (oadrManager.getReportJid() != null && oadrManager.getReportJid().equals(session.getAddress())) {
+		if (oadrManager.getReportJid() != null && oadrManager.getReportJid().equals(session.getAddress().toString())) {
 			oadrManager.setReportJid(null);
 			String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
 			Log.info("vtn: " + vtnId + " report client disconnected");
 		}
-		if (oadrManager.getUplinkJid() != null && oadrManager.getUplinkJid().equals(session.getAddress())) {
+		if (oadrManager.getUplinkJid() != null && oadrManager.getUplinkJid().equals(session.getAddress().toString())) {
 			oadrManager.setUplinkJid(null);
+			String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
+			Log.info("vtn: " + vtnId + " uplink client disconnected");
+		}
+		if (oadrManager.getOptJid() != null && oadrManager.getOptJid().equals(session.getAddress().toString())) {
+			oadrManager.setOptJid(null);
 			String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
 			Log.info("vtn: " + vtnId + " uplink client disconnected");
 		}
