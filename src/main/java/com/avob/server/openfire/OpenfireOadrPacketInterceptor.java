@@ -125,11 +125,16 @@ public class OpenfireOadrPacketInterceptor implements PacketInterceptor {
 						Log.info("Intercept VTN msg from: " + message.getFrom().toString() + " to: "
 								+ message.getTo().toString());
 
+						String old = message.getFrom().toString();
 						String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
 
 						if (vtnId != null) {
 							String domain = message.getFrom().getDomain();
-							message.setFrom(vtnId + "@" + domain + "/uplink");
+							String fromJid = vtnId + "@" + domain + "/uplink";
+							message.setFrom(fromJid);
+
+							Log.info("Change msg 'from' from: " + old + "to: " + fromJid);
+
 						}
 
 					} else if (message.getTo().toString().contains(fullXmppDomain)) {
@@ -139,10 +144,11 @@ public class OpenfireOadrPacketInterceptor implements PacketInterceptor {
 						if (message.getFrom().equals(session.getAddress())) {
 
 							JID old = message.getFrom();
+							String domain = message.getFrom().getDomain();
 							String resource = message.getFrom().getResource();
 							String fromJid = localSession
 									.getSessionData(OpenfireOadrSessionListener.FINGERPRINT_SESSION_DATA_KEY) + "@"
-									+ fullXmppDomain + "/" + resource;
+									+ domain + "/" + resource;
 							message.setFrom(fromJid);
 
 							Log.info("Change msg 'from' from: " + old.toString() + "to: " + fromJid);

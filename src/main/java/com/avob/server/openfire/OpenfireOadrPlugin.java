@@ -122,8 +122,5 @@ public class OpenfireOadrPlugin implements Plugin {
 		return oadrManager;
 	}
 
-	private void setOadrManager(OadrManager oadrManager) {
-		this.oadrManager = oadrManager;
-	}
 
 }
