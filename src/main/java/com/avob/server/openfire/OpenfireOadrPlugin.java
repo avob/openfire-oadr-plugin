@@ -12,8 +12,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.jivesoftware.openfire.XMPPServer;
-import org.jivesoftware.openfire.auth.DefaultAuthProvider;
-import org.jivesoftware.openfire.auth.HybridAuthProvider;
 import org.jivesoftware.openfire.container.Plugin;
 import org.jivesoftware.openfire.container.PluginManager;
 import org.jivesoftware.openfire.event.SessionEventDispatcher;
@@ -21,13 +19,32 @@ import org.jivesoftware.openfire.interceptor.InterceptorManager;
 import org.jivesoftware.openfire.keystore.IdentityStore;
 import org.jivesoftware.openfire.keystore.TrustStore;
 import org.jivesoftware.openfire.spi.ConnectionType;
-import org.jivesoftware.util.JiveGlobals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.component.ComponentException;
 import org.xmpp.component.ComponentManager;
 import org.xmpp.component.ComponentManagerFactory;
 
+/**
+ * Initialize Oadr plugin by creating OadrManager, OpenfireOadrSessionListener,
+ * OpenfireOadrPacketInterceptor
+ * 
+ * This plugin requires client to connect using ANONYMOUS sasl mechanism. Client
+ * MUST provide valide x509 certificate relative to VTN infrastucture
+ * 
+ * Following system properties MUST be provided:
+ * 
+ * xmpp.oadr.vtnId: VTN Oadr 2.0b fingerprint used to authenticate VTN clients
+ * 
+ * xmpp.oadr.vtnAuthEndpoint: VTN HTTP endpoint used to authenticate VEN clients
+ * from their Oadr 2.0b fingerprint
+ * 
+ * Free resources when plugin is destroyed
+ * 
+ * 
+ * @author bzanni
+ *
+ */
 public class OpenfireOadrPlugin implements Plugin {
 
 	public static final String OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY = "xmpp.oadr.vtnId";
@@ -45,14 +62,12 @@ public class OpenfireOadrPlugin implements Plugin {
 
 	@Override
 	public void initializePlugin(PluginManager manager, File pluginDirectory) {
+
+		// retrieve Openfire configured Certificates to initialize SessionListener
 		XMPPServer server = XMPPServer.getInstance();
-		
 		String xmppDomain = server.getServerInfo().getXMPPDomain();
 		IdentityStore identityStore = server.getCertificateStoreManager().getIdentityStore(ConnectionType.SOCKET_C2S);
 		TrustStore trustStore = server.getCertificateStoreManager().getTrustStore(ConnectionType.SOCKET_C2S);
-
-		// init session listener
-
 		KeyStore ks = identityStore.getStore();
 		KeyStore ts = trustStore.getStore();
 		try {
@@ -81,21 +96,17 @@ public class OpenfireOadrPlugin implements Plugin {
 			Log.error("SessionListener can't be loaded");
 		}
 
+		// initilize OpenfireComponent
+		String fullXmppDomain = XMPP_SUBDOMAIN + "." + xmppDomain;
 		ComponentManager componentManager = ComponentManagerFactory.getComponentManager();
 		try {
-			component = new OpenfireOadrComponent(getOadrManager(), XMPP_SUBDOMAIN + "." + xmppDomain);
+			component = new OpenfireOadrComponent(getOadrManager(), fullXmppDomain);
 			componentManager.addComponent(XMPP_SUBDOMAIN, component);
 		} catch (ComponentException e) {
 			Log.error(e.getMessage());
 		}
 
-		OpenfireOadrAuthProvider oadrAuthProvider = new OpenfireOadrAuthProvider();
-		JiveGlobals.setProperty("provider.auth.className", HybridAuthProvider.class.getName());
-		JiveGlobals.setProperty("hybridAuthProvider.primaryProvider.className", DefaultAuthProvider.class.getName());
-		JiveGlobals.setProperty("hybridAuthProvider.secondaryProvider.className",
-				oadrAuthProvider.getClass().getName());
-
-		String fullXmppDomain = XMPP_SUBDOMAIN + "." + xmppDomain;
+		// initialize OpenfireOadrPacketInterceptor
 		interceptorManager = InterceptorManager.getInstance();
 		packetInterceptor = new OpenfireOadrPacketInterceptor(getOadrManager(), fullXmppDomain);
 		interceptorManager.addInterceptor(packetInterceptor);
@@ -121,6 +132,5 @@ public class OpenfireOadrPlugin implements Plugin {
 	public OadrManager getOadrManager() {
 		return oadrManager;
 	}
-
 
 }

@@ -1,5 +1,11 @@
 package com.avob.server.openfire;
 
+/**
+ * Oadr Fingerprint exception raised from failed computation
+ * 
+ * @author bzanni
+ *
+ */
 public class OadrFingerprintException extends Exception {
 	/**
 	 * 

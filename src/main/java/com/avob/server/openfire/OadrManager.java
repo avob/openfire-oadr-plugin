@@ -1,5 +1,17 @@
 package com.avob.server.openfire;
 
+/**
+ * Manage OpenADR VTN services jid
+ * 
+ * Those jid are set up by OpenfireOadrPacketInterceptor when VTN client(s)
+ * connect and detroyed by OpenfireOadrSessionListener when client session is
+ * detroyed
+ * 
+ * Those jid are used by PacketInterceptor in order to route VEN -> VTN traffic
+ * 
+ * @author bzanni
+ *
+ */
 public class OadrManager {
 
 	private String reportJid;

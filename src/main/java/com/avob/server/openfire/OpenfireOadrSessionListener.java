@@ -19,7 +19,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Listen to Xmpp session creation / destruction in order to authenticate and
+ * authorize clients
  * 
+ * Authentication is done using Oadr 2.0b fingerprint computation on client X509
+ * certificate
+ * 
+ * Authorization is then realised using a HTTPS POST query on VTN API to
+ * retrieve client Oadr role (ROLE_VEN or ROLE_VTN as plain HTTP response)
+ * 
+ * Use Openfire configured C2S X509 certificates during HTTP query to VTN API.
+ * VTN is supposed to authenticate Oadr Xmpp plugin using those certificates
+ * 
+ * Use Openfire configured 'xmpp.oadr.vtnAuthEndpoint' system property to know
+ * where HTTP request is done
+ * 
+ * Deny access to client without known Oadr role
+ * 
+ * Store client fingerprint and role in localSession for future message routing
  * 
  * @author bzanni
  *
@@ -45,23 +62,19 @@ public class OpenfireOadrSessionListener implements SessionEventListener {
 	}
 
 	public void sessionCreated(Session session) {
-		Log.info("sessionCreated");
 		handleSessionCreated(session);
 	}
 
 	public void sessionDestroyed(Session session) {
-		Log.info("sessionDestroyed");
 		handleSessionDestroyed(session);
 
 	}
 
 	public void anonymousSessionCreated(Session session) {
-		Log.info("anonymousSessionCreated");
 		handleSessionCreated(session);
 	}
 
 	public void anonymousSessionDestroyed(Session session) {
-		Log.info("anonymousSessionDestroyed");
 		handleSessionDestroyed(session);
 
 	}
@@ -87,13 +100,13 @@ public class OpenfireOadrSessionListener implements SessionEventListener {
 			String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
 			Log.info("vtn: " + vtnId + " report client disconnected");
 		}
-		if (oadrManager.getUplinkJid() != null && oadrManager.getUplinkJid().equals(session.getAddress().toString())) {
-			oadrManager.setUplinkJid(null);
-			String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
-			Log.info("vtn: " + vtnId + " uplink client disconnected");
-		}
 		if (oadrManager.getOptJid() != null && oadrManager.getOptJid().equals(session.getAddress().toString())) {
 			oadrManager.setOptJid(null);
+			String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
+			Log.info("vtn: " + vtnId + " opt client disconnected");
+		}
+		if (oadrManager.getUplinkJid() != null && oadrManager.getUplinkJid().equals(session.getAddress().toString())) {
+			oadrManager.setUplinkJid(null);
 			String vtnId = JiveGlobals.getProperty(OpenfireOadrPlugin.OPENFIRE_OADR_VTN_ID_SYSTEM_PROPERTY);
 			Log.info("vtn: " + vtnId + " uplink client disconnected");
 		}

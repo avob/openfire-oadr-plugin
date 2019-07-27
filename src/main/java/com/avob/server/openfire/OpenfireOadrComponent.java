@@ -6,8 +6,20 @@ import org.slf4j.LoggerFactory;
 import org.xmpp.component.AbstractComponent;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.Message;
-import org.xmpp.packet.Presence;
 
+/**
+ * This component declares a subdomain where VEN/VTN clients are supposed to
+ * connect
+ * 
+ * It handles OADR Disco Info and Disco Items payloads
+ * 
+ * It routes OADR VEN traffic to VTN using OadrManager jids
+ * 
+ * It forbid VEN to VEN traffic
+ * 
+ * @author bzanni
+ *
+ */
 public class OpenfireOadrComponent extends AbstractComponent {
 	private static final Logger Log = LoggerFactory.getLogger(OpenfireOadrComponent.class);
 
@@ -20,7 +32,7 @@ public class OpenfireOadrComponent extends AbstractComponent {
 	public static final String OPT_SERVICE = "EiOpt";
 
 	public static final String UPLINK_SERVICE = "uplink";
-	
+
 	public static final String VEN_CLIENT_RESOURCE = "client";
 
 	private static final String NAMESPACE_OADR = "http://openadr.org/openadr2";
@@ -62,6 +74,7 @@ public class OpenfireOadrComponent extends AbstractComponent {
 
 	@Override
 	protected IQ handleDiscoItems(IQ iq) {
+		// create oadr disco items for each VTN service
 		final IQ replyPacket = IQ.createResultIQ(iq);
 		final Element responseElement = replyPacket.setChildElement("query", NAMESPACE_DISCO_ITEMS);
 		Element childElement = iq.getChildElement();
@@ -87,54 +100,40 @@ public class OpenfireOadrComponent extends AbstractComponent {
 
 	@Override
 	protected void handleMessage(final Message message) {
-		Log.info("Component ---------");
-		Log.info(message.toXML());
-
 		if (message.getTo() != null && message.getFrom() != null) {
 			String to = message.getTo().toString();
 
-			String vtnId = null;
+			String vtnServiceJid = null;
 
+			// check if message 'to' jid match with one of declared VTN service jid
 			if (to.equals(OpenfireOadrComponent.LOCALPART_EVENT + "@" + domain)) {
 
-				vtnId = oadrManager.getEventJid();
+				vtnServiceJid = oadrManager.getEventJid();
 
 			} else if (to.equals(OpenfireOadrComponent.LOCALPART_REGISTERPARTY + "@" + domain)) {
 
-				vtnId = oadrManager.getRegisterPartyJid();
+				vtnServiceJid = oadrManager.getRegisterPartyJid();
 
 			} else if (to.equals(OpenfireOadrComponent.LOCALPART_REPORT + "@" + domain)) {
 
-				vtnId = oadrManager.getReportJid();
+				vtnServiceJid = oadrManager.getReportJid();
 
 			} else if (to.equals(OpenfireOadrComponent.LOCALPART_OPT + "@" + domain)) {
 
-				vtnId = oadrManager.getOptJid();
+				vtnServiceJid = oadrManager.getOptJid();
 
 			}
 
-			if (vtnId != null) {
+			// if so, change message 'to' field
+			if (vtnServiceJid != null) {
 				Message createCopy = message.createCopy();
-				createCopy.setTo(vtnId);
+				createCopy.setTo(vtnServiceJid);
 
 				this.send(createCopy);
 
 			}
 
 		}
-	}
-
-	@Override
-	protected void handlePresence(final Presence presence) {
-		Log.info("Presence");
-		Log.info(presence.toXML());
-	}
-
-	@Override
-	protected void handleIQResult(final IQ iq) {
-
-		Log.info("IQ");
-		Log.info(iq.toXML());
 	}
 
 	@Override

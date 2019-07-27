@@ -12,6 +12,19 @@ import org.xmpp.packet.JID;
 import org.xmpp.packet.Message;
 import org.xmpp.packet.Packet;
 
+/**
+ * Intercept VTN client(s) IQ payload emitted during xmpp session creation to
+ * setup OadrManager jids
+ * 
+ * Intercept VTN Message payload, change "from" field to {vtn
+ * fingerprint}@{domain}/{resource}
+ * 
+ * Intercept VEN Message payload, change "from" field to {ven
+ * fingerprint}@{domain}/{resource}
+ * 
+ * @author bzanni
+ *
+ */
 public class OpenfireOadrPacketInterceptor implements PacketInterceptor {
 
 	private static final Logger Log = LoggerFactory.getLogger(OpenfireOadrPacketInterceptor.class);
@@ -28,7 +41,6 @@ public class OpenfireOadrPacketInterceptor implements PacketInterceptor {
 	public void interceptPacket(Packet packet, Session session, boolean incoming, boolean processed)
 			throws PacketRejectedException {
 
-//		Log.info(packet.toXML());
 		if (processed) {
 			return;
 		}
@@ -41,26 +53,17 @@ public class OpenfireOadrPacketInterceptor implements PacketInterceptor {
 
 			LocalSession localSession = (LocalSession) session;
 
-//			if (!oadrManager.isVtnConnected()) {
-//				throw new PacketRejectedException("Traffic is inhibated because VTN is not connected");
-//			}
-
 			if (packet instanceof IQ) {
 
 				IQ iq = (IQ) packet;
 
-				if (
-//						isVtn(localSession) && 
-				iq.getElement().element("bind") != null) {
-					Log.info("Intercept VTN iq");
-//					Log.info(iq.toString());
+				if (iq.getElement().element("bind") != null) {
 
 					if (iq.getChildElement().element("resource") != null) {
 						// VTN can setup a connection per Oadr Service (+1 for uplinks) by providing
 						// resource in IQ bind payload
 						// resource MUST be either EiEvent, EiReport, EiRegisterParty, uplink
 						String resource = iq.getChildElement().element("resource").getText();
-
 						String jid = iq.getFrom().getResource() + "@" + iq.getFrom().getDomain() + "/"
 								+ iq.getFrom().getResource();
 						switch (resource) {
@@ -115,9 +118,6 @@ public class OpenfireOadrPacketInterceptor implements PacketInterceptor {
 			} else if (packet instanceof Message) {
 
 				Message message = (Message) packet;
-
-				Log.info("Intercept ---------");
-				Log.info(message.toXML());
 
 				if (message.getFrom() != null && message.getTo() != null) {
 					if (message.getFrom().toString().equals(oadrManager.getUplinkJid())) {

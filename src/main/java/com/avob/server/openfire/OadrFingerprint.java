@@ -5,11 +5,24 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 
+/**
+ * Compute OpenADR 2.0b fingerprint from X509 certificate
+ * 
+ * @author bzanni
+ *
+ */
 public class OadrFingerprint {
 
 	private static final int OADR_FINGER_LENGTH = 29;
 	private static final String OADR20B_SHA_ALGORITHM = "SHA-256";
 
+	/**
+	 * get fingerprint
+	 * 
+	 * @param cert
+	 * @return
+	 * @throws OadrFingerprintException
+	 */
 	public static String getOadr20bFingerprint(X509Certificate cert) throws OadrFingerprintException {
 		return OadrFingerprint.format(OadrFingerprint.truncate(getFingerprint(cert, OADR20B_SHA_ALGORITHM)));
 	}
