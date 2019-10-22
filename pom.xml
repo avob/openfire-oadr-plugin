@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>plugins</artifactId>
 		<groupId>org.igniterealtime.openfire</groupId>
-		<version>4.3.2</version>
+		<version>4.4.2</version>
 	</parent>
 
 	<groupId>com.avob.server.openfire</groupId>
@@ -19,7 +19,7 @@
 		</developer>
 	</developers>
 	<properties>
-		<openfire.version>4.3.2</openfire.version>
+		<openfire.version>4.4.2</openfire.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
@@ -30,7 +30,7 @@
 		<dependency>
 			<groupId>org.igniterealtime.openfire</groupId>
 			<artifactId>xmppserver</artifactId>
-			<version>4.3.2</version>
+			<version>4.4.2</version>
 			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
