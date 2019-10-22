@@ -81,23 +81,18 @@
 }
 </style>
 
-<%@ page import="org.jivesoftware.openfire.XMPPServer" %>
-<%@ page import="com.avob.server.openfire.OpenfireOadrPlugin" %>
-com.avob.server.openfire<% // Get parameters //
+	<%@ page import="org.jivesoftware.openfire.XMPPServer"%>
+	<%@ page import="com.avob.server.openfire.OpenfireOadrPlugin"%>
+	<%
+		// Get parameters //
 
-    // Network interface (if any) is configured for all ports on the server
-    OpenfireOadrPlugin openfireOadrPlugin =
-            (OpenfireOadrPlugin) XMPPServer.getInstance().getPluginManager().getPlugin("OpenfireOadrPlugin");
-
-
-
-    boolean rssEnabled = JiveGlobals.getBooleanProperty("rss.enabled", true);
-%>
+		// Network interface (if any) is configured for all ports on the server
+	%>
 	<p>
 		<fmt:message key="oadr.info.message" />
 	</p>
 	<table border="0" width="100%">
-		<td valign="top">
+		<tr valign="top">
 
 			<table border="0" cellpadding="2" cellspacing="2" width="100%"
 				class="info-table">
@@ -111,44 +106,59 @@ com.avob.server.openfire<% // Get parameters //
 					<tr>
 						<td class="c1"><fmt:message key="oadr.info.vtnId" /></td>
 						<td class="c2">
-						<% final String vtnId = JiveGlobals.getProperty("xmpp.oadr.vtnId"); %>
-						<% if(vtnId == null) { %>
-						<fmt:message key="oadr.info.vtnIDSystemPropertyRequired" />
-						<img src="images/error-16x16.gif" width="12" height="12" border="0" alt="<fmt:message key="oadr.info.vtnIDSystemPropertyRequired" />" title="<fmt:message key="oadr.info.vtnIDSystemPropertyRequired" />">&nbsp;
-						<% } else { %>
-							<%= vtnId %>
-						<% } %>
+							<%
+								final String vtnId = JiveGlobals.getProperty("xmpp.oadr.vtnId");
+							%> <%
+								if (vtnId == null) {
+							%> <fmt:message key="oadr.info.vtnIDSystemPropertyRequired" /> <img
+							src="images/error-16x16.gif" width="12" height="12" border="0"
+							alt="<fmt:message key="oadr.info.vtnIDSystemPropertyRequired" />"
+							title="<fmt:message key="oadr.info.vtnIDSystemPropertyRequired" />">&nbsp;
+							<%
+								} else {
+							%> <%=vtnId%> <%
+ 	}
+ %>
 
 						</td>
 					</tr>
 					<tr>
 						<td class="c1"><fmt:message key="oadr.info.vtnAuthEndpoint" /></td>
 						<td class="c2">
-						<% final String vtnAuthEndpoint = JiveGlobals.getProperty("xmpp.oadr.vtnAuthEndpoint"); %>
-						<% if(vtnAuthEndpoint == null) { %>
-						<fmt:message key="oadr.info.vtnAuthEndpointSystemPropertyRequired" />
-						<img src="images/error-16x16.gif" width="12" height="12" border="0" alt="<fmt:message key="vtnAuthEndpointSystemPropertyRequired" />" title="<fmt:message key="vtnAuthEndpointSystemPropertyRequired" />">&nbsp;
-						<% } else { %>
-							<%= vtnAuthEndpoint %>
-						<% } %>
+							<%
+								final String vtnAuthEndpoint = JiveGlobals.getProperty("xmpp.oadr.vtnAuthEndpoint");
+							%> <%
+								if (vtnAuthEndpoint == null) {
+							%> <fmt:message
+								key="oadr.info.vtnAuthEndpointSystemPropertyRequired" /> <img
+							src="images/error-16x16.gif" width="12" height="12" border="0"
+							alt="<fmt:message key="vtnAuthEndpointSystemPropertyRequired" />"
+							title="<fmt:message key="vtnAuthEndpointSystemPropertyRequired" />">&nbsp;
+							<%
+								} else {
+							%> <%=vtnAuthEndpoint%> <%
+ 	}
+ %>
 
 						</td>
 					</tr>
 					<tr>
 						<td class="c1"><fmt:message key="oadr.info.vtnClientState" /></td>
 						<td class="c2">
-						<% boolean vtnClientConnected = openfireOadrPlugin.getOadrManager().isVtnConnected(); %>
-						<%= vtnClientConnected %>
+							<%
+						
+								OpenfireOadrPlugin openfireOadrPlugin = (OpenfireOadrPlugin) XMPPServer.getInstance().getPluginManager()
+										.getPlugin("openfireoadrplugin-openfire-plugin-assembly");
+								boolean vtnClientConnected = openfireOadrPlugin.getOadrManager().isVtnConnected();
+							%> <%=vtnClientConnected%>
 						</td>
 					</tr>
-					<tr>
-						<td>&nbsp;</td>
-					</tr>
+
 				</tbody>
 
 
 			</table>
-		</td>
+		</tr>
 
 	</table>
 </html>

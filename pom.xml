@@ -5,8 +5,9 @@
 	<parent>
 		<artifactId>plugins</artifactId>
 		<groupId>org.igniterealtime.openfire</groupId>
-		<version>4.2.0</version>
+		<version>4.3.2</version>
 	</parent>
+
 	<groupId>com.avob.server.openfire</groupId>
 	<artifactId>OpenfireOadrPlugin</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -18,7 +19,7 @@
 		</developer>
 	</developers>
 	<properties>
-		<openfire.version>4.2.0</openfire.version>
+		<openfire.version>4.3.2</openfire.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
@@ -29,25 +30,29 @@
 		<dependency>
 			<groupId>org.igniterealtime.openfire</groupId>
 			<artifactId>xmppserver</artifactId>
-			<version>${openfire.version}</version>
+			<version>4.3.2</version>
 			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<groupId>com.cenqua.shaj</groupId>
 					<artifactId>shaj</artifactId>
 				</exclusion>
-
+				<exclusion>
+					<groupId>org.gnu.inet</groupId>
+					<artifactId>libidn</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
 	</dependencies>
 
 	<build>
+		<sourceDirectory>src/java</sourceDirectory>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 			</plugin>
-			<!-- Compiles the Openfire Admin Console JSP pages. -->
 			<plugin>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-jspc-maven-plugin</artifactId>
@@ -61,37 +66,16 @@
 								<groupId>com.cenqua.shaj</groupId>
 								<artifactId>shaj</artifactId>
 							</exclusion>
-
+							<exclusion>
+								<groupId>org.gnu.inet</groupId>
+								<artifactId>libidn</artifactId>
+							</exclusion>
 						</exclusions>
 					</dependency>
-
 				</dependencies>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.12.4</version>
-				<configuration>
-					<skipTests>true</skipTests>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 
-	<repositories>
-		<repository>
-			<id>igniterealtime</id>
-			<name>Ignite Realtime Repository</name>
-			<url>https://igniterealtime.org/archiva/repository/maven/</url>
-		</repository>
-	</repositories>
 
-	<pluginRepositories>
-		<pluginRepository>
-			<id>igniterealtime</id>
-			<name>Ignite Realtime Repository</name>
-			<url>https://igniterealtime.org/archiva/repository/maven/</url>
-		</pluginRepository>
-	</pluginRepositories>
-	
 </project>

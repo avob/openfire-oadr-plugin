@@ -4,13 +4,12 @@
     <class>com.avob.server.openfire.OpenfireOadrPlugin</class>
 
     <!-- Plugin meta-data -->
-    <name>OpenfireOadrPlugin</name>
+    <name>openfireoadrplugin</name>
     <description>Openfire Openadr security plugin</description>
     <author>Bertrand Zanni</author>
-
     <version>1.0</version>
     <date>12/06/2019</date>
-    <url>http://github.com/shrhdk/openfire-plugin-example</url>
+    <url>https://github.com/avob/openfire-oadr-plugin</url>
     <minServerVersion>4.3.2</minServerVersion>
     <minJavaVersion>1.8</minJavaVersion>    
     <licenseType>MIT</licenseType>
